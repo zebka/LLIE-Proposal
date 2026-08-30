@@ -6,10 +6,10 @@
 
 ---
 
-## عنوان پیشنهادی
+## عنوان پیشنهادی (نسخه نهایی)
 
-- **فارسی:** ارائه یک روش بهبود تصویر کم‌نور مبتنی بر Prior مدل‌های انتشار (Diffusion) و یادگیری بدون نظارت برای کاربردهای بینایی ماشین
-- **English:** A Zero-Shot Low-Light Image Enhancement Method Based on Diffusion Priors for Machine Vision Applications
+- **فارسی:** ارائه یک روش بهبود تصویر کم‌نور مبتنی بر Prior مدل‌های انتشار (Diffusion) برای شرایط نوری نامتوازن گرگ‌ومیش با کاربرد در بینایی ماشین
+- **English:** A Diffusion-Prior Zero-Shot Method for Low-Light Image Enhancement under Imbalanced Twilight Conditions with Application to Machine Vision
 
 ## سه مشارکت اصلی رساله
 

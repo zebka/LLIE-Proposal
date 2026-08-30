@@ -42,8 +42,5 @@
    ← سه مشارکت رساله اینجا معرفی می‌شوند
 ```
 
-## برای پر کردن ۳ مدخل ناقص در references.bib
-- `zheng2026darkdriving` — لیست نویسندگان از arxiv.org/abs/2603.18067
-- `ali2025lenviz` — از arxiv.org/abs/2503.19804
-- `rizvi2024lolistreet` — از arxiv.org/abs/2410.09831
-(قبل از تایپ نهایی سند پر شوند)
+## وضعیت مراجع
+هر ۵۵ مدخل کامل و دارای نویسنده/venue واقعی است (۳ کلید به wang2026darkdriving، aithal2025lenviz، islam2024lolistreet تغییر نام یافت؛ ۳ لنگر داوری‌شده اضافه شد: yan2025hvi — CVPR 2025، zhou2025gppllie — AAAI 2025، afifi2021exposure — CVPR 2021).
