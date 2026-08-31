@@ -245,8 +245,8 @@ TIMELINE_ROWS = [
     ["۰", "۱–۳", "تکمیل مرور ادبیات؛ پیاده‌سازی و بازتولید baselineها؛ ساخت مجموعه ارزیابی اولیه گرگ‌ومیش برای تحلیل خرابی", "پروپوزال نهایی، کد baseline، گزارش تحلیل خرابی (پاسخ س۱)"],
     ["۱", "۴–۸", "طراحی و پیاده‌سازی ماژول گیت روشنایی و prior فرکانسی؛ ارزیابی اولیه روی بنچمارک‌های موجود", "مدل ساده + مقاله کنفرانسی"],
     ["۲", "۹–۱۴", "توسعه کامل سه ماژول؛ ablation و بهینه‌سازی استنتاج تطبیقی؛ ارزیابی جامع روی بنچمارک‌های استاندارد", "نسخه میانی روش + پیش‌نویس مقاله مجله اول"],
-    ["۳", "۱۵–۱۹", "ضبط و کیوریشن TwilightDrive؛ ارزیابی پایین‌دستی (تشخیص شیء)", "مقاله مجله اول + نسخه اولیه دیتاست"],
-    ["۴", "۲۰–۲۴", "تکمیل، anonymization و انتشار دیتاست و کد؛ مقاله دوم؛ نگارش رساله", "مقاله دوم + دیتاست منتشرشده + رساله تکمیل‌شده"],
+    ["۳", "۱۵–۱۹", "ضبط و پالایش (کیوریشن) TwilightDrive؛ ارزیابی پایین‌دستی (تشخیص شیء)", "مقاله مجله اول + نسخه اولیه دیتاست"],
+    ["۴", "۲۰–۲۴", "تکمیل، ناشناس‌سازی و در صورت احراز شرایط، انتشار دیتاست و کد؛ مقاله دوم؛ نگارش رساله", "مقاله دوم + دیتاست منتشرشده + رساله تکمیل‌شده"],
 ]
 
 MILESTONE = ("نقاط کنترل: پایان فاز ۱ = تصمیم go/no-go بر اساس نتایج فرضیه ۱؛ "
@@ -254,6 +254,26 @@ MILESTONE = ("نقاط کنترل: پایان فاز ۱ = تصمیم go/no-go ب
 
 
 # ------------------------------------------------------------ main
+def clear_cell(cell):
+    """remove all inner tables and paragraphs, leave one empty paragraph"""
+    for tbl in list(cell.tables):
+        tbl._tbl.getparent().remove(tbl._tbl)
+    for p in list(cell.paragraphs):
+        p._p.getparent().remove(p._p)
+    cell.add_paragraph()
+
+
+def fill_if_empty(cell, text, rtl=False, size=10.5):
+    if not cell.text.strip():
+        p = cell.paragraphs[0]
+        run = p.add_run(text)
+        run.font.size = Pt(size)
+        if rtl:
+            set_rtl(p)
+        return True
+    return False
+
+
 def main():
     entries = parse_bib(PROJ / "references.bib")
 
@@ -278,48 +298,64 @@ def main():
     doc = Document(str(FORM))
     t1 = doc.tables[1]
 
-    # --- title / keywords rows ---
-    t1.rows[6].cells[1].paragraphs[0].add_run(
-        "ارائه یک روش بهبود تصویر کم‌نور مبتنی بر Prior مدل‌های انتشار (Diffusion) برای شرایط نوری نامتوازن گرگ‌ومیش با کاربرد در بینایی ماشین")
-    set_rtl(t1.rows[6].cells[1].paragraphs[0])
-    t1.rows[7].cells[1].paragraphs[0].add_run(
-        "A Diffusion-Prior Zero-Shot Method for Low-Light Image Enhancement under Imbalanced Twilight Conditions with Application to Machine Vision")
-    t1.rows[8].cells[1].paragraphs[0].add_run(
-        "بهبود تصویر کم‌نور، مدل‌های انتشار، یادگیری بدون نظارت، گرگ‌ومیش، بینایی ماشین")
-    set_rtl(t1.rows[8].cells[1].paragraphs[0])
-    t1.rows[9].cells[1].paragraphs[0].add_run(
-        "Low-Light Image Enhancement, Diffusion Models, Zero-Shot Learning, Twilight, Machine Vision")
+    # --- title / keywords: fill only EMPTY cells (row 6 FA title is user-managed) ---
+    fill_if_empty(t1.rows[7].cells[1],
+                  "A Diffusion-Prior Zero-Shot Method for Low-Light Image Enhancement "
+                  "under Imbalanced Twilight Conditions with Application to Machine Vision")
+    fill_if_empty(t1.rows[8].cells[1],
+                  "بهبود تصویر کم‌نور، مدل‌های انتشار، یادگیری بدون نظارت، گرگ‌ومیش، بینایی ماشین",
+                  rtl=True)
+    fill_if_empty(t1.rows[9].cells[1],
+                  "Low-Light Image Enhancement, Diffusion Models, Zero-Shot Learning, "
+                  "Twilight, Machine Vision")
 
-    # --- units / duration ---
-    t1.rows[11].cells[1].paragraphs[0].add_run("21")
-    t1.rows[11].cells[11].paragraphs[0].add_run("24 ماه")
-    set_rtl(t1.rows[11].cells[11].paragraphs[0])
+    # --- units / duration (مدت cell located dynamically after its label) ---
+    fill_if_empty(t1.rows[11].cells[1], "21")
+    cells11 = t1.rows[11].cells
+    for i, c in enumerate(cells11):
+        if c.text.strip().startswith("مدت اجرا"):
+            for j in range(i + 1, len(cells11)):
+                if cells11[j]._tc is not c._tc and cells11[j]._tc is not cells11[1]._tc:
+                    fill_if_empty(cells11[j], "24 ماه", rtl=True)
+                    break
+            break
 
-    # --- sections ---
+    # --- content cells: clear (incl. inner tables) then refill from sources ---
+    clear_cell(t1.rows[23].cells[0])
     fill_cell(t1.rows[23].cells[0], sec1)
+    clear_cell(t1.rows[25].cells[0])
     fill_cell(t1.rows[25].cells[0], sec2)
+    clear_cell(t1.rows[27].cells[0])
     fill_cell(t1.rows[27].cells[0], sec3)
+    clear_cell(t1.rows[29].cells[0])
     fill_cell(t1.rows[29].cells[0], sec4)
     fill_table(t1.rows[29].cells[0], RISK_ROWS)
-    add_para(t1.rows[29].cells[0], "۴-۶. جدول زمان‌بندی انجام پروژه", bold=True)
-    fill_table(t1.rows[29].cells[0], TIMELINE_ROWS)
     add_para(t1.rows[29].cells[0], MILESTONE)
-    fill_cell(t1.rows[31].cells[0], sec5)
-    fill_table(t1.rows[31].cells[0], COMPARISON_ROWS)
+
+    # novelty cell + comparison table (moved to top-level table 3 by Word re-save)
+    t3 = doc.tables[3]
+    clear_cell(t3.rows[1].cells[0])
+    fill_cell(t3.rows[1].cells[0], sec5)
+    fill_table(t3.rows[1].cells[0], COMPARISON_ROWS)
+
+    # refresh the standalone timeline table (table 2, data rows 1..5)
+    for ri, row_vals in enumerate(TIMELINE_ROWS[1:], start=1):
+        for ci, val in enumerate(row_vals):
+            c = doc.tables[2].rows[ri].cells[ci]
+            c.text = ""
+            p = c.paragraphs[0]
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER if ci < 2 else WD_ALIGN_PARAGRAPH.JUSTIFY
+            set_rtl(p)
+            run = p.add_run(val)
+            run.font.size = Pt(9)
 
     # --- references ---
     used = sorted(order.items(), key=lambda kv: kv[1])
-    ref_cell = t1.rows[33].cells[0]
-    first = True
+    ref_cell = t3.rows[3].cells[0]
+    clear_cell(ref_cell)
     for key, num in used:
         line = f"[{num}] {ieee_ref(key, entries)}"
-        if first and not ref_cell.paragraphs[0].text.strip():
-            p = ref_cell.paragraphs[0]
-            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            p.add_run(line).font.size = Pt(9)
-            first = False
-        else:
-            add_ltr_para(ref_cell, line)
+        add_ltr_para(ref_cell, line)
 
     doc.save(str(OUT))
     return order
