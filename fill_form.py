@@ -90,6 +90,9 @@ def clean_md(md_text):
             continue
         if s.startswith(">") or s == "---" or s.startswith("%"):
             continue
+        if s.startswith("[[TABLE") and s.endswith("]]"):
+            items.append(("table", s[2:-2].replace("TABLE", "").strip()))
+            continue
         if s.startswith("|"):
             continue  # md tables are hardcoded separately
         s = s.replace("**", "").replace("`", "").replace("*", "")
@@ -184,6 +187,15 @@ def set_table_borders(table):
 def fill_cell(cell, items, size=10.5):
     first = True
     for kind, txt in items:
+        if kind == "sp":
+            sp = cell.add_paragraph()
+            sp.paragraph_format.space_after = Pt(2)
+            first = False
+            continue
+        if kind == "table":
+            fill_table(cell, TABLES.get(txt, [["?", "?"]]))
+            first = False
+            continue
         if first and not cell.paragraphs[0].text.strip():
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
@@ -193,11 +205,7 @@ def fill_cell(cell, items, size=10.5):
             run.font.size = Pt(size)
             first = False
         else:
-            if kind == "sp":
-                sp = cell.add_paragraph()
-                sp.paragraph_format.space_after = Pt(2)
-            else:
-                add_para(cell, txt, bold=(kind == "h"), size=size)
+            add_para(cell, txt, bold=(kind == "h"), size=size)
 
 
 def fill_table(cell, rows, header=True, size=9):
@@ -252,6 +260,56 @@ TIMELINE_ROWS = [
 MILESTONE = ("نقاط کنترل: پایان فاز ۱ = تصمیم go/no-go بر اساس نتایج فرضیه ۱؛ "
              "پایان فاز ۳ = ارزیابی فرضیه‌های ۲ و ۳؛ پایان فاز ۴ = دفاع بر اساس دو مقاله + دیتاست عمومی.")
 
+TABLES = {
+    "1": [
+        ["دوره", "رویکرد", "نمایندگان", "محدودیت اصلی"],
+        ["1971–1977", "تئوری Retinex", "Land و McCann [land1977retinex]", "چارچوب نظری؛ حل تحلیلی به‌دلیل عدم یکتایی تجزیه ممکن نیست"],
+        ["دهه 1980", "تراز هیستوگرام تطبیقی", "AHE/CLAHE [pizer1987clahe]", "تقویت نویز و اغتشاش رنگ در نواحی ناهموار"],
+        ["1997", "Retinex چندمقیاس", "SSR/MSRCR [jobson1997msrcr]", "حساسیت به پارامترهای گوسی و رنگ مصنوعی"],
+        ["2011", "قیاس با برداشتن غبار", "Dong et al. [dong2011dehaze]", "فرض مدل پراکندگی در صحنه کم‌نور واقعی برقرار نیست"],
+        ["2016", "مدل واریانس‌پذیر وزن‌دار", "SRIE [fu2016srie]", "حل‌کننده تکراری کند؛ تنظیم دستی پارامترها"],
+        ["2017", "تخمین نگاشت روشنایی", "LIME [guo2017lime]", "وابستگی به prior ساختاری دست‌ساز"],
+        ["2017", "نخستین یادگیری عمیق", "LLNet [lore2017llnet]", "ظرفیت محدود autoencoder و آموزش ناپایدار"],
+    ],
+    "2": [
+        ["روش", "LOL-v1 (PSNR/SSIM)", "LOL-v2-real (PSNR/SSIM)", "LOL-v2-syn (PSNR/SSIM)"],
+        ["RetinexNet", "16.77/0.560", "15.47/0.567", "17.13/0.798"],
+        ["DeepUPE", "14.38/0.446", "13.27/0.452", "15.08/0.623"],
+        ["EnlightenGAN", "17.48/0.650", "18.23/0.617", "16.57/0.734"],
+        ["RUAS", "18.23/0.720", "18.37/0.723", "16.55/0.652"],
+        ["DRBN", "20.13/0.830", "20.29/0.831", "23.22/0.927"],
+        ["KinD", "20.86/0.790", "14.74/0.641", "13.29/0.578"],
+        ["Restormer", "22.43/0.823", "19.94/0.827", "21.41/0.830"],
+        ["MIRNet", "24.14/0.830", "20.02/0.820", "21.94/0.876"],
+        ["SNR-Net", "24.61/0.842", "21.48/0.849", "24.14/0.928"],
+        ["Retinexformer", "25.16/0.845", "22.80/0.840", "25.67/0.930"],
+    ],
+    "3": [
+        ["روش", "اندازه مدل (M)", "FLOPs (G)", "زمان استنتاج (s)"],
+        ["RetinexNet", "0.84", "136.02", "0.119"],
+        ["KinD", "8.54", "29.13", "0.181"],
+        ["DRBN", "0.58", "37.79", "0.053"],
+        ["EnlightenGAN", "8.64", "61.01", "0.0097"],
+        ["Zero-DCE", "0.079", "5.21", "0.0042"],
+        ["RUAS", "0.0014", "0.28", "0.0063"],
+        ["SCI", "0.0003", "0.062", "0.0017"],
+    ],
+    "4": [
+        ["روش", "LOL PSNR", "LOL SSIM", "LOL LPIPS", "v2-real PSNR", "v2-real SSIM"],
+        ["Zero-DCE", "14.861", "0.562", "0.335", "18.059", "0.580"],
+        ["KinD", "20.870", "0.799", "0.207", "17.544", "0.669"],
+        ["PairLIE", "19.510", "0.736", "0.248", "20.357", "0.782"],
+        ["SMG", "23.684", "0.826", "0.118", "24.620", "0.867"],
+        ["SNR-Net", "24.608", "0.840", "0.151", "21.479", "0.848"],
+        ["LLFlow", "24.999", "0.870", "0.117", "26.200", "0.888"],
+        ["Retinexformer", "25.153", "0.843", "0.131", "22.794", "0.839"],
+        ["Diff-Retinex", "21.981", "0.863", "0.048", "-", "-"],
+        ["DiffLL", "26.336", "0.845", "0.217", "28.857", "0.876"],
+        ["PyDiff", "27.088", "0.875", "0.111", "27.236", "0.869"],
+        ["ReCo-Diff", "27.626", "0.884", "0.090", "29.306", "0.906"],
+    ],
+}
+
 
 # ------------------------------------------------------------ main
 def clear_cell(cell):
@@ -291,7 +349,7 @@ def main():
     sec1, sec2, sec3, sec4, sec5 = [apply_cites(s, order) for s in items]
 
     # map citations inside hardcoded tables too
-    for rows in (RISK_ROWS, TIMELINE_ROWS, COMPARISON_ROWS):
+    for rows in (RISK_ROWS, TIMELINE_ROWS, COMPARISON_ROWS, *TABLES.values()):
         for i, row in enumerate(rows):
             rows[i] = [map_cites(v, order) for v in row]
 
