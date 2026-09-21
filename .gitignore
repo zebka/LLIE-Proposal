@@ -1,2 +1,25 @@
+# extracted figure PNGs (large; reproducible via scripts/extract_figures.py)
 figures/*.png
 figures/pdfs/
+
+# ASCII figure copies for LaTeX (auto-created by scripts/build_docs.py)
+latex/figures/
+
+# generated deliverables (reproducible via scripts/build_docs.py)
+output/
+
+# LaTeX build artifacts
+latex/*.aux
+latex/*.log
+latex/*.out
+latex/*.toc
+latex/main.synctex*
+latex/*.fls
+latex/*.fdb_latexmk
+
+# python cache
+__pycache__/
+
+# Windows artifacts
+nul
+latex/nul
