@@ -1,0 +1,13 @@
+# IBDiff implementation — install torch separately first (see README)
+# pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+diffusers>=0.30.0
+transformers>=4.40.0
+accelerate>=0.30.0
+safetensors>=0.4.0
+huggingface_hub>=0.23.0
+Pillow>=10.0.0
+numpy>=1.26.0
+tqdm>=4.66.0
+# optional (gracefully skipped if missing):
+# lpips        # LPIPS metric (downloads VGG/Alex weights on first use)
+# pyiqa        # NIQE/MUSIQ metrics

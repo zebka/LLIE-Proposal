@@ -23,3 +23,11 @@ __pycache__/
 # Windows artifacts
 nul
 latex/nul
+
+# IBDiff runtime (large / reproducible)
+code/.venv/
+code/__pycache__/
+code/data/
+code/results/
+code/out*/
+code/test_imgs/
