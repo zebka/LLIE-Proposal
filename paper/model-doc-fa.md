@@ -14,30 +14,51 @@
 
 ## ۲. پایپ‌لاین کلی (۴ جزء)
 
-```
-                        ┌─────────────────────────────────────────────┐
-                        │        SD 2.1-base (frozen weights)         │
-                        │  DDIM Inversion (T=25) → Self-Attention     │
-                        │  Extraction {q_t^l, k_t^l, v_t^l}           │
-                        └──────────────────┬──────────────────────────┘
-                                           │
-[I_low] ──► (A) پیش‌پردازش ──► VAE ──► z_0^c ──► DDIM Inv ──► z_T^c ──► AdaIN ──► z_T*
-  │                                                                            │
-  │                                                                            ▼
-  │                                                    ┌────────────────────────────────────┐
-  ├──► نقشه روشنایی L̂ ──► ماسک‌های گیت G_dark, G_bright ──►│  (B) حلقه نمونه‌گیری DDIM           │
-  │        (L̂ = max-channel blur)                       │  + SA Replacement                  │
-  │                                                     │  + Wavelet Prior (LL-band)         │
-  └──► DWT ──► زیرباند LL (گایدنس) ────────────────────►│  + Illumination-Gate Guidance      │
-      └─► زیرباندهای LH/HL/HH (جزئیات، دست‌نخورده)       │  + Adaptive Step Scheduling        │
-                                                       └──────────────────┬─────────────────┘
-                                                                          ▼
-                                                              z_0* ──► VAE Decode ──► I_out
+دیاگرام و برچسب‌ها انگلیسی‌اند تا مستقیماً مبنای شکل ۱ مقاله باشند؛ زیر هر قسمت، توضیح انگلیسی (footnote) آمده است.
+
+```text
+                       +--------------------------------------+
+                       |   Stable Diffusion 2.1-base (frozen) |
+                       +--------------------------------------+
+
+  MAIN PATH (latent space)
+  ------------------------
+  I_low --> [1] Preprocess --> VAE Enc --> [2] DDIM Inversion --> [3] AdaIN --> z_T*
+             (mean >= 30)         z_0^c       T = 25 steps                        |
+                                              + extract SA features             |
+                                                A = {q_t^l, k_t^l, v_t^l}       v
+                              +---------------------------------------------------+
+                              |  [4] SAMPLING LOOP  (x T_eff steps)               |
+                              |    * SA replacement        (uses A)               |
+                              |    * Illumination-Gate Guidance  <-- G_dark, G_bright
+                              |    * Wavelet LL-band Prior       <-- LL band      |
+                              +---------------------------------------------------+
+                                                                        |
+                                                                        v
+                                      z_0* --> IDWT (+ H_L) --> VAE Dec --> I_out
+
+  GUIDANCE PATH (pixel space, side branch)
+  ----------------------------------------
+  I_low --> L_hat = blur_5x5(max_c I_c) --> G_dark, G_bright (spatial masks)
+        +-> DWT --> { LL (low band), H_L (detail bands) }
 ```
 
-**خلاصه جریان:** تصویر ورودی → پیش‌پردازش (مقیاس میانگین روشنایی به ≥۳۰، مطابق Cho) → inversion با استخراج self-attention → نرمال‌سازی AdaIN → حلقه نمونه‌گیری که در هر گام سه گایدنس (گیت روشنایی + موجک + زمان‌بندی تطبیقی) اعمال می‌کند → خروجی.
+**Footnotes (one per block):**
+
+- **[1] Preprocessing** — If the mean intensity of the input falls below 30, it is rescaled to 30; nothing else is changed (following Cho et al.).
+- **[2] DDIM Inversion** — The input latent `z_0^c` is inverted over `T = 25` DDIM steps. During inversion, self-attention features `A = {q_t^l, k_t^l, v_t^l}` are extracted and stored from every up-block layer at every timestep.
+- **[3] AdaIN** — The inverted latent `z_T^c` is re-centered to the standard normal distribution via channel-wise statistics (Eq. 1). This pulls the out-of-distribution dark latent back toward `N(0, I)` and corrects subtle color shifts.
+- **[4] Sampling loop** — The frozen UNet denoises `z_T*` for `T_eff` steps with three training-free mechanisms active at every step:
+  - *SA replacement*: the default self-attention is replaced with the stored features `A`, enforcing structural and color fidelity.
+  - *Illumination-Gate Guidance*: the noise prediction is spatially re-weighted using the masks `G_dark` / `G_bright` (Eq. 4), so bright regions are not over-exposed and dark regions are not left behind. This is our main contribution.
+  - *Wavelet LL-band Prior*: the guidance acts only on the low-frequency wavelet band `LL`; the input's detail bands `H_L` are re-injected through IDWT at the output (Eq. 5), preserving edges and texture.
+  - *Adaptive step scheduling*: `T_eff = T * (alpha + (1 - alpha) * s_I)` with `s_I = 1 - mean(L_hat)` — brighter scenes take fewer steps, darker scenes take more.
+
+**خلاصه جریان (فارسی):** تصویر ورودی → پیش‌پردازش (مقیاس میانگین روشنایی به ≥۳۰، مطابق Cho) → inversion با استخراج self-attention → نرمال‌سازی AdaIN → حلقه نمونه‌گیری که در هر گام سه گایدنس (گیت روشنایی + موجک + زمان‌بندی تطبیقی) اعمال می‌کند → خروجی.
 
 ## ۳. شرح جزء به جزء
+
+> نگاشت به دیاگرام بخش ۲: جزء A همان بلوک‌های [1]–[3] مسیر اصلی است؛ جزءهای B، C و D سه سازوکار داخل حلقه نمونه‌گیری [4] هستند.
 
 ### جزء A — پایه zero-shot (بازتولید Cho et al. به‌عنوان پایه)
 - مدل: **Stable Diffusion 2.1-base**، وزن‌ها کاملاً ثابت (frozen)
