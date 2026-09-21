@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """Core IBDiff pipeline: Cho-style zero-shot base + illumination gate + wavelet + adaptive steps.
 
 Base scheme (Cho et al., arXiv:2412.13401):
@@ -57,7 +57,7 @@ def gaussian_kernel5(device, dtype) -> torch.Tensor:
 # ---------------------------------------------------------------- pipeline
 
 class IBDiffPipeline:
-    def __init__(self, model_id: str = "stabilityai/stable-diffusion-2-1-base",
+    def __init__(self, model_id: str = "Manojb/stable-diffusion-2-1-base",
                  device: str = "cuda", fp16: bool = True, T: int = 25,
                  empty_prompt: str = ""):
         from diffusers import DDIMScheduler, AutoencoderKL, UNet2DConditionModel

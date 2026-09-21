@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """CLI: enhance one image or a folder with IBDiff.
 
 Example:
   python -m ibdiff.enhance --input data/ExDark --output out/ibdiff \
-      --model stabilityai/stable-diffusion-2-1-base --seed 0
+      --model Manojb/stable-diffusion-2-1-base --seed 0
 """
 import argparse
 import random
@@ -33,7 +33,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", required=True, help="image file or folder")
     ap.add_argument("--output", required=True, help="output folder")
-    ap.add_argument("--model", default="stabilityai/stable-diffusion-2-1-base")
+    ap.add_argument("--model", default="Manojb/stable-diffusion-2-1-base")
     ap.add_argument("--size", type=int, default=512)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--T", type=int, default=25)

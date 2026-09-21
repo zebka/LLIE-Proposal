@@ -1,4 +1,4 @@
-# IBDiff — code
+﻿# IBDiff — code
 
 Zero-shot low-light enhancement with a frozen Stable Diffusion 2.1 prior plus
 three training-free guidance modules (illumination gate, wavelet LL prior,
@@ -13,7 +13,7 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
 pip install -r requirements.txt
 ```
 
-First run downloads `stabilityai/stable-diffusion-2-1-base` (~3.5 GB) into the
+First run downloads `Manojb/stable-diffusion-2-1-base` (~3.5 GB) into the
 Hugging Face cache. 8 GB VRAM is enough (fp16, attention features on CPU).
 
 ## Enhance

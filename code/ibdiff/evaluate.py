@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """Benchmark runner: paired (PSNR/SSIM/LOE/exposure) and unpaired (LOE/exposure).
 
 Paired example (LOL-style: separate low/high folders with matching names):
@@ -31,7 +31,7 @@ def main():
     ap.add_argument("--unpaired", default=None)
     ap.add_argument("--out", required=True)
     ap.add_argument("--csv", default=None)
-    ap.add_argument("--model", default="stabilityai/stable-diffusion-2-1-base")
+    ap.add_argument("--model", default="Manojb/stable-diffusion-2-1-base")
     ap.add_argument("--size", type=int, default=512)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--runs", type=int, default=1)
