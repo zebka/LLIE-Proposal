@@ -19,7 +19,7 @@ from .pipeline import IBDiffPipeline
 
 
 def to_tensor(im: Image.Image) -> torch.Tensor:
-    return torch.from_numpy(np.asarray(im)).permute(2, 0, 1).float().div(255.0)
+    return torch.from_numpy(np.asarray(im).copy()).permute(2, 0, 1).float().div(255.0)
 
 
 def to_pil(t: torch.Tensor) -> Image.Image:
