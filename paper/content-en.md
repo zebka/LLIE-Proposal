@@ -50,7 +50,7 @@ Fig. 1 shows the IBDiff pipeline. The backbone is the pre-trained text-to-image 
 
 If the mean intensity of the input image I is below 30, it is rescaled to that level [9]. The VAE encoder produces the corresponding latent z_0^c, and DDIM inversion [16] maps it to z_T^c over T=25 steps; simultaneously, the self-attention features of the up-block layers are extracted and stored at every step. AdaIN [17] then re-centers the inverted state to the standard distribution:
 
-z*_T = σ(z_T^s) · (z_T^c − μ(z_T^c)) / σ(z_T^c) + μ(z_T^s),  z_T^s ~ N(0,I)   (1)
+EQ: z_T^*=σ(z_T^s)·(z_T^c-μ(z_T^c))/σ(z_T^c)+μ(z_T^s),  z_T^s~N(0,I)#(1)
 
 where μ and σ are the channel-wise mean and standard deviation. During sampling, the default self-attention is replaced with the extracted features, which enforces structural fidelity and corrects subtle color shifts [9].
 
@@ -58,15 +58,15 @@ where μ and σ are the channel-wise mean and standard deviation. During samplin
 
 The input illumination map is estimated with a lightweight training-free estimator:
 
-L̂ = blur_5×5( max_c I_c )   (2)
+EQ: L̂=blur_(5×5)(max_c⁡I_c)#(2)
 
 Two sigmoid gates weight the under- and over-exposed regions:
 
-G_dark = σ((τ_low − L̂)/s),  G_bright = σ((L̂ − τ_high)/s)   (3)
+EQ: G_dark=σ((τ_low-L̂)/s), G_bright=σ((L̂-τ_high)/s)#(3)
 
 with τ_low=0.35, τ_high=0.65 and s=0.05. At each sampling step t, after approximating ẑ_0,t, the local mean brightness μ_local is estimated and the noise prediction is spatially corrected:
 
-ε̃_t = ε_θ(z_t,t) + λ_d(t)·G_dark ⊙ (μ_E − μ_local(ẑ_0,t)) − λ_b(t)·G_bright ⊙ max(μ_local(ẑ_0,t) − μ_E, 0)   (4)
+EQ: ε̃_t=ε_θ(z_t,t)+λ_d(t)·G_dark⊙(μ_E-μ_local(ẑ_(0,t)))-λ_b(t)·G_bright⊙max(μ_local(ẑ_(0,t))-μ_E,0)#(4)
 
 where μ_E=0.5 is the target mid-level brightness and λ_d, λ_b are guidance coefficients with linear decay across steps (stronger in early steps where the global structure forms). This module directly prevents burning bright regions (by subtracting guidance in over-exposed areas) and leaving dark regions behind (by adding guidance in under-exposed areas).
 
@@ -74,7 +74,7 @@ where μ_E=0.5 is the target mid-level brightness and λ_d, λ_b are guidance co
 
 The Haar DWT of the input separates the low band LL (illumination and coarse structure) from the detail bands LH/HL/HH (edges and texture). The illumination-gate guidance (4) is applied only on the LL band so that brightness control does not damage edges and texture; in the final reconstruction, the input's high-frequency bands H_L are re-injected via IDWT:
 
-I_out = VAE.Dec( IDWT( ẑ_0, H_L ) )   (5)
+EQ: I_out=VAE.Dec(IDWT(ẑ_0,H_L))#(5)
 
 The key difference from [10] is that all of these mechanisms are training-free; [10] relies on a learnable brightness factor and text guidance that require test-time optimization.
 
